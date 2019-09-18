@@ -1,0 +1,6 @@
+# Ignore training sets
+data/training.csv
+data/movie_lines.tsv
+
+# Ignore compiled modules
+*.pyc

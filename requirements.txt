@@ -1,0 +1,8 @@
+beautifulsoup4
+requests
+neupy
+scikit-learn
+pandas
+pysimplegui
+dill
+nltk
