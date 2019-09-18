@@ -4,11 +4,8 @@ from random import seed, sample, shuffle
 import requests
 
 from bs4 import BeautifulSoup
-from tensorflow.keras.models import Sequential
-from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras import regularizers
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -93,32 +90,7 @@ def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_beha
     train_examples = pad_sequences(train_examples, padding='post', maxlen=maxlen)
     test_examples= pad_sequences(test_examples, padding='post', maxlen=maxlen)
 
-    return train_examples, test_examples, train_labels, test_labels, vocab_size
-
-def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256):
-    train_examples, test_examples, train_labels, test_labels, vocab_size = make_train_test(maxlen=maxlen)
-
-    embedding_dim = 256
-
-    net = Sequential()
-    net.add(layers.Embedding(vocab_size, embedding_dim, input_length=maxlen))
-    net.add(layers.Conv1D(128, 5, activation='relu'))
-    net.add(layers.GlobalMaxPooling1D())
-    net.add(layers.Dense(32, activation='relu'))
-    net.add(layers.Dense(1, activation='sigmoid'))
-    net.compile(optimizer='adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
-
-    history = net.fit(train_examples, train_labels,
-        epochs=10,
-        verbose=True,
-        validation_data=(test_examples, test_labels),
-        batch_size=32
-    )
-
-    plot_history(history)
-    
+    return train_examples, test_examples, train_labels, test_labels, vocab_size    
 
 if __name__ == '__main__':
     train_classifier()
