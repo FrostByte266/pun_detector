@@ -20,7 +20,6 @@ def fetch_puns_list(num_pages):
         if request.status_code != 200:
             raise RuntimeError(f'Attempt to request page #{page} returned an invalid response code: {request.status_code}')
         else:
-            vocab_size = len(tokenizer.word_index) + 1
             page_puns = []
             soup = BeautifulSoup(request.content, 'html.parser')
             for div in soup.findAll('div', {'class': 'o'}):
@@ -44,7 +43,7 @@ def add_padding(data):
 def make_sentence_examples(path='/data/movie_lines.tsv'):
     with open(path, 'r') as file:
         reader = csv.reader(file, delimiter='\t')
-        data = [[row[4], 0] for row in reader]
+        data = [[row[-1], 0] for row in reader]
         seed(614)
         return sample(data, 990)
 
@@ -93,4 +92,4 @@ def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_beha
     return train_examples, test_examples, train_labels, test_labels, vocab_size    
 
 if __name__ == '__main__':
-    train_classifier()
+    print(make_sentence_examples())
