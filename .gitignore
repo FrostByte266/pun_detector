@@ -2,5 +2,9 @@
 data/training.csv
 data/movie_lines.tsv
 
+# Ignore tensorboard logs
+
+logs/*
+
 # Ignore compiled modules
 *.pyc

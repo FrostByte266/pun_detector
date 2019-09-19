@@ -7,7 +7,7 @@ import visuals
 
 def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256):
 
-    log_dir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_dir="/logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
     train_examples, test_examples, train_labels, test_labels, vocab_size = data_preprocessing.make_train_test(maxlen=maxlen)
