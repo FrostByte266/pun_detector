@@ -1,0 +1,6 @@
+#!/bin/bash
+python src/networks.py
+tensorboard --logdir /logs/fit > /dev/null &
+process=$!
+read -n 1 -s -r -p "Starting tensorboard, press any key to exit"
+kill -2 $!
