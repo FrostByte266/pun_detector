@@ -85,7 +85,7 @@ def read_dataset(dataset='/data/training.csv', on_error='generate', num_pages=99
     
 
 
-def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_behavior='generate', maxlen=256, glove_path='/data/glove.6B.300d.txt', embedding_dim=300):
+def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_behavior='generate', maxlen=300, glove_path='/data/glove.6B.300d.txt', embedding_dim=300):
     data = read_dataset(dataset=dataset, on_error=default_error_behavior)
     examples = data[:, :-1]
     labels = data[:, -1:]

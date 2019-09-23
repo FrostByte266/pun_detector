@@ -5,14 +5,13 @@ from tensorflow.keras import layers, callbacks
 import data_preprocessing
 import visuals
 
-def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256):
+def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256, embedding_dim=200, glove_path='/data/glove.twitter.27B.200d.txt'):
 
     log_dir="/logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
-    tensorboard_callback = callbacks.TensorBoard(log_dir=log_dir, write_grads=True, histogram_freq=5)
+    tensorboard_callback = callbacks.TensorBoard(log_dir=log_dir)
+    early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=5)
 
-    train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix = data_preprocessing.make_train_test(maxlen=maxlen, embedding_dim=300)
-
-    embedding_dim = 300
+    train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix = data_preprocessing.make_train_test(maxlen=maxlen, embedding_dim=embedding_dim, glove_path=glove_path)
 
     net = Sequential()
     net.add(layers.Embedding(vocab_size, embedding_dim, input_length=maxlen, weights=[embedding_matrix], trainable=True))
@@ -25,11 +24,11 @@ def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256):
               metrics=['accuracy'])
 
     history = net.fit(train_examples, train_labels,
-        epochs=10,
+        epochs=20,
         verbose=True,
         validation_data=(test_examples, test_labels),
         batch_size=32,
-        callbacks=[tensorboard_callback]
+        callbacks=[tensorboard_callback, early_stop]
     )
 
     visuals.plot_history(history)
