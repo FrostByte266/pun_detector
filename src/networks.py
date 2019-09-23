@@ -10,12 +10,12 @@ def train_classifier(dataset='/data/training.csv', ratio=0.4, maxlen=256):
     log_dir="/logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = callbacks.TensorBoard(log_dir=log_dir, write_grads=True, histogram_freq=5)
 
-    train_examples, test_examples, train_labels, test_labels, vocab_size = data_preprocessing.make_train_test(maxlen=maxlen)
+    train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix = data_preprocessing.make_train_test(maxlen=maxlen, embedding_dim=300)
 
-    embedding_dim = 256
+    embedding_dim = 300
 
     net = Sequential()
-    net.add(layers.Embedding(vocab_size, embedding_dim, input_length=maxlen))
+    net.add(layers.Embedding(vocab_size, embedding_dim, input_length=maxlen, weights=[embedding_matrix], trainable=True))
     net.add(layers.Conv1D(128, 5, activation='relu'))
     net.add(layers.GlobalMaxPooling1D())
     net.add(layers.Dense(32, activation='relu'))

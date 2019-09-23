@@ -2,6 +2,9 @@
 data/training.csv
 data/movie_lines.tsv
 
+# Ignore glove data
+glove.*.txt
+
 # Ignore tensorboard logs
 
 logs/*

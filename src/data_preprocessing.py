@@ -40,6 +40,20 @@ def add_padding(data):
 
     return data_matrix
 
+def create_embedding_matrix(filepath, word_index, embedding_dim):
+    vocab_size = len(word_index) + 1  # Adding again 1 because of reserved 0 index
+    embedding_matrix = np.zeros((vocab_size, embedding_dim))
+
+    with open(filepath) as f:
+        for line in f:
+            word, *vector = line.split()
+            if word in word_index:
+                idx = word_index[word] 
+                embedding_matrix[idx] = np.array(
+                    vector, dtype=np.float32)[:embedding_dim]
+
+    return embedding_matrix
+
 def make_sentence_examples(path='/data/movie_lines.tsv'):
     with open(path, 'r') as file:
         reader = csv.reader(file, delimiter='\t')
@@ -71,7 +85,7 @@ def read_dataset(dataset='/data/training.csv', on_error='generate', num_pages=99
     
 
 
-def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_behavior='generate', maxlen=256):
+def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_behavior='generate', maxlen=256, glove_path='/data/glove.6B.300d.txt', embedding_dim=300):
     data = read_dataset(dataset=dataset, on_error=default_error_behavior)
     examples = data[:, :-1]
     labels = data[:, -1:]
@@ -89,7 +103,9 @@ def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_beha
     train_examples = pad_sequences(train_examples, padding='post', maxlen=maxlen)
     test_examples= pad_sequences(test_examples, padding='post', maxlen=maxlen)
 
-    return train_examples, test_examples, train_labels, test_labels, vocab_size    
+    embedding_matrix = create_embedding_matrix(glove_path, tokenizer.word_index, embedding_dim)
+
+    return train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix  
 
 if __name__ == '__main__':
-    print(make_sentence_examples())
+    pass
