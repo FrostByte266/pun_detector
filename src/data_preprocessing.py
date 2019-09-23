@@ -49,8 +49,11 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
             word, *vector = line.split()
             if word in word_index:
                 idx = word_index[word] 
-                embedding_matrix[idx] = np.array(
-                    vector, dtype=np.float32)[:embedding_dim]
+                try:
+                    embedding_matrix[idx] = np.array(
+                        vector, dtype=np.float32)[:embedding_dim]
+                except ValueError:
+                    continue
 
     return embedding_matrix
 
@@ -105,7 +108,7 @@ def make_train_test(dataset='/data/training.csv', ratio=0.40, default_error_beha
 
     embedding_matrix = create_embedding_matrix(glove_path, tokenizer.word_index, embedding_dim)
 
-    return train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix  
+    return train_examples, test_examples, train_labels, test_labels, vocab_size, embedding_matrix, tokenizer
 
 if __name__ == '__main__':
     pass
