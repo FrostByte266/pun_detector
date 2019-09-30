@@ -6,3 +6,4 @@ pandas
 pysimplegui
 dill
 nltk
+aiohttp

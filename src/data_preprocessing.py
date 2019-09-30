@@ -1,3 +1,4 @@
+import asyncio
 import csv
 import re
 from random import seed, sample, shuffle

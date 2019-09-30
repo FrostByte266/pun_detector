@@ -8,4 +8,3 @@ RUN pip install --ignore-installed --upgrade tensorflow-gpu
 RUN apt-get update && apt-get install -y python3-tk graphviz
 RUN pip install --upgrade numpy==1.16.4
 
-COPY . .
