@@ -5,6 +5,10 @@ data/movie_lines.tsv
 # Ignore glove data
 glove.*.txt
 
+# Ignore saved tokenizers and models
+*.h5
+*.pickle
+
 # Ignore tensorboard logs
 
 logs/*
