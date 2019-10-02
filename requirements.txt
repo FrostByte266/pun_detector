@@ -1,7 +1,7 @@
 beautifulsoup4
 requests
-neupy
 scikit-learn
+matplotlib
 pandas
 pysimplegui
 dill

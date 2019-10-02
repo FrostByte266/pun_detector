@@ -51,9 +51,9 @@ def save_classifier_and_tokenizer(model, tokenizer, model_data='/data/model.h5',
 
     model.save(model_data)
 
-def load_classifier_and_tokenizer(model_path, tokenizer_path):
+def load_classifier_and_tokenizer(model_path='/data/model.h5', tokenizer_path='/data/tokenizer.pickle'):
     with open(tokenizer_path, 'rb') as file:
-        tokenizer = pickle.load(file)
+        tokenizer = pickle.load(file) 
 
     model = load_model(model_path)
 
@@ -61,11 +61,11 @@ def load_classifier_and_tokenizer(model_path, tokenizer_path):
 
 
 if __name__ == '__main__':
-    # net, tokenizer = train_classifier(glove_path='/data/glove.840B.300d.txt', embedding_dim=300, maxlen=300)
+    net, tokenizer = train_classifier(glove_path='/data/glove.840B.300d.txt', embedding_dim=300, maxlen=300)
 
-    # save_classifier_and_tokenizer(net, tokenizer)
+    save_classifier_and_tokenizer(net, tokenizer)
 
-    net, tokenizer = load_classifier_and_tokenizer('/data/model.h5', '/data/tokenizer.pickle')
+    # net, tokenizer = load_classifier_and_tokenizer('/data/model.h5', '/data/tokenizer.pickle')
 
     try:
         while True:
