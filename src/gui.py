@@ -4,16 +4,13 @@ from time import sleep
 
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.python.keras.backend import set_session
+from tensorflow.keras.backend import set_session
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import PySimpleGUI as sg 
 
 import networks
 
 sg.ChangeLookAndFeel('Black')
-
-graph = tf.get_default_graph()
-sess = tf.Session()
 
 def ask(question, yes_button='Yes', no_button='No', title='Prompt', close_behavior='exit'):
     layout = [
@@ -76,10 +73,7 @@ def load_model(default_model_path='/data/model.h5', default_tokenizer_path='/dat
     return rval
 
 
-def train_on_thread(queue):
-    global graph
-    global sess
-
+def train_on_thread(queue, graph, sess):
     with graph.as_default():
         set_session(sess)
         print('START')
@@ -88,7 +82,6 @@ def train_on_thread(queue):
         except Exception:
             print('Encountered an exception')
         print('FINISH')
-        networks.save_classifier_and_tokenizer(net, tokenizer, model_data='/data/trained.h5', tokenizer_data='/data/trained.pickle')
         queue.put((net, tokenizer))
 
 
@@ -102,7 +95,7 @@ class LoopVars:
     def __exit__(self, *args):
         del self
 
-def train_gui():
+def train_gui(graph, sess):
 
     gui_queue = queue.Queue()
 
@@ -113,7 +106,7 @@ def train_gui():
 
     window = sg.Window('Training...', layout=layout)
 
-    threading.Thread(target=train_on_thread, args=(gui_queue,), daemon=True).start()
+    threading.Thread(target=train_on_thread, args=(gui_queue, graph, sess, ), daemon=True).start()
 
     with LoopVars(c=1, updated=False, finished=False, timeout=100) as config:
         while True:
@@ -144,6 +137,10 @@ def train_gui():
                 config.finished = True
 
 if __name__ == '__main__':
+
+    graph = tf.get_default_graph()
+    sess = tf.Session(graph=graph)
+
     layout = [
         [sg.Text('Load a net?')],
         [sg.Button('Yes'), sg.Button('No')]
@@ -162,8 +159,7 @@ if __name__ == '__main__':
             net, tokenizer = load_model()
             assert net is not None or tokenizer is not None
     else:
-        train_gui()
-        net, tokenizer = networks.load_classifier_and_tokenizer(model_path='/data/trained.h5', tokenizer_path='/data/trained.pickle')
+        net, tokenizer = train_gui(graph, sess)
 
     layout = [
         [sg.Input(key='in')],
@@ -181,6 +177,7 @@ if __name__ == '__main__':
             break
         elif event == 'Predict!':
             with graph.as_default():
+                set_session(sess)
                 vectorized = tokenizer.texts_to_sequences([values['in']])
                 padded = pad_sequences(vectorized, padding='post', maxlen=300)
                 prediction = net.predict(padded)
