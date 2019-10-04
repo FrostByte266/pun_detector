@@ -77,7 +77,7 @@ def train_on_thread(queue, graph, sess):
     with graph.as_default():
         set_session(sess)
         print('START')
-        net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.840B.300d.txt')
+        net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.6B.300d.txt')
         print('FINISH')
         queue.put((net, tokenizer))
 
