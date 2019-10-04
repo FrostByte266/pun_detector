@@ -77,10 +77,7 @@ def train_on_thread(queue, graph, sess):
     with graph.as_default():
         set_session(sess)
         print('START')
-        try:
-            net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.840B.300d.txt')
-        except Exception:
-            print('Encountered an exception')
+        net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.840B.300d.txt')
         print('FINISH')
         queue.put((net, tokenizer))
 

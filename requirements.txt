@@ -7,3 +7,4 @@ pysimplegui
 dill
 nltk
 aiohttp
+tqdm

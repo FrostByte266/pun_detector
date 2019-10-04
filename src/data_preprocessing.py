@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tqdm import tqdm
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -46,7 +47,8 @@ def create_embedding_matrix(filepath, word_index, embedding_dim):
     embedding_matrix = np.zeros((vocab_size, embedding_dim))
 
     with open(filepath) as f:
-        for line in f:
+        contents = f.readlines()
+        for line in tqdm(contents, desc='Creating embedding matrix'):
             word, *vector = line.split()
             if word in word_index:
                 idx = word_index[word] 
