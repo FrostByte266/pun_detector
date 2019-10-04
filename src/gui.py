@@ -2,13 +2,18 @@ import queue
 import threading
 from time import sleep
 
+import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.python.keras.backend import set_session
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import PySimpleGUI as sg 
 
 import networks
 
 sg.ChangeLookAndFeel('Black')
+
+graph = tf.get_default_graph()
+sess = tf.Session()
 
 def ask(question, yes_button='Yes', no_button='No', title='Prompt', close_behavior='exit'):
     layout = [
@@ -72,13 +77,19 @@ def load_model(default_model_path='/data/model.h5', default_tokenizer_path='/dat
 
 
 def train_on_thread(queue):
-    print('START')
-    try:
-        net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.840B.300d.txt')
-    except Exception:
-        print('Encountered an exception')
-    print('FINISH')
-    queue.put((net, tokenizer))
+    global graph
+    global sess
+
+    with graph.as_default():
+        set_session(sess)
+        print('START')
+        try:
+            net, tokenizer = networks.train_classifier(maxlen=300, embedding_dim=300, glove_path='/data/glove.840B.300d.txt')
+        except Exception:
+            print('Encountered an exception')
+        print('FINISH')
+        networks.save_classifier_and_tokenizer(net, tokenizer, model_data='/data/trained.h5', tokenizer_data='/data/trained.pickle')
+        queue.put((net, tokenizer))
 
 
 class LoopVars:
@@ -135,20 +146,46 @@ def train_gui():
 if __name__ == '__main__':
     layout = [
         [sg.Text('Load a net?')],
-        [sg.Button('Yes', key='yes'), sg.Button('No', key='no')]
+        [sg.Button('Yes'), sg.Button('No')]
     ]
 
-    window = sg.Window('Prompt' ,layout=layout)
+    window = sg.Window('Prompt', layout=layout)
 
     while True:
         event, values = window.Read()
         window.Close()
-        ask = event == 'yes'
+        ask = event == 'Yes'
         break
     if ask:
-        net, tokenizer = load_model()
-        assert net is not None or tokenizer is not None
-        print(net)
+        with graph.as_default():
+            set_session(sess)
+            net, tokenizer = load_model()
+            assert net is not None or tokenizer is not None
     else:
-        net, tokenizer = train_gui()
-        print((net, tokenizer))
+        train_gui()
+        net, tokenizer = networks.load_classifier_and_tokenizer(model_path='/data/trained.h5', tokenizer_path='/data/trained.pickle')
+
+    layout = [
+        [sg.Input(key='in')],
+        [sg.Text('Prediction:'), sg.Text('', size=(30, 1), key='out')],
+        [sg.Text('Confidence:'), sg.Text('', size=(30, 1), key='confidence')],
+        [sg.Text('Prediction (Raw output):'), sg.Text('', size=(30, 1), key='raw_out')],
+        [sg.Button('Predict!', bind_return_key=True), sg.Exit()]
+    ]
+
+    window = sg.Window('Prediction interface', layout=layout, finalize=True)
+
+    while True:
+        event, values = window.Read()
+        if event in (None, 'Exit'):
+            break
+        elif event == 'Predict!':
+            with graph.as_default():
+                vectorized = tokenizer.texts_to_sequences([values['in']])
+                padded = pad_sequences(vectorized, padding='post', maxlen=300)
+                prediction = net.predict(padded)
+                pred = prediction[0][0]
+                window['confidence'].Update(f'{(pred*100 if pred > 0.5 else 100-pred*100):.2f}%')
+                window['out'].Update('Pun' if pred > 0.5 else 'Not a pun')
+                window['raw_out'].Update(pred)
+    
