@@ -4,7 +4,4 @@ scikit-learn
 matplotlib
 pandas
 pysimplegui
-dill
-nltk
-aiohttp
 tqdm

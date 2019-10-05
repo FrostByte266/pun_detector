@@ -111,8 +111,8 @@ def train_gui(graph, sess):
             if config.finished:
                 window['img'].UpdateAnimation('/data/check.gif', time_between_frames=config.timeout)
                 config.c += 1
-                if config.c > 91:
-                    sleep(3)
+                if config.c > 104:
+                    sleep(1)
                     window.Close()
                     return message
                 else:
