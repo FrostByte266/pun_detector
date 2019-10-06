@@ -1,3 +1,4 @@
+from base64 import b64encode
 import queue
 import threading
 from time import sleep
@@ -82,7 +83,7 @@ def train_on_thread(queue, graph, sess):
         queue.put((net, tokenizer))
 
 
-class LoopVars:
+class config_vars:
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
     
@@ -94,44 +95,99 @@ class LoopVars:
 
 def train_gui(graph, sess):
 
-    gui_queue = queue.Queue()
+    training_queue = queue.Queue()
 
-    layout = [
-        [sg.Text('Training in progress, this could take a while', key='txt')],
-        [sg.T(' ' * 10, key='space'), sg.Image('/data/training.gif', key='img')]
+    with open('/data/training.gif', 'rb') as f:
+        training_gif = b64encode(f.read())
+
+    with open('/data/check.gif', 'rb') as f:
+        training_done_gif = b64encode(f.read())
+
+    training_layout = [
+        [sg.Text('Training in progress, this could take a while')],
+        [sg.T(' ' * 10), sg.Image(data=training_gif, key='animation')],
     ]
 
-    window = sg.Window('Training...', layout=layout)
+    finished_layout = [
+        [sg.Text('Training complete!')],
+        [sg.T(' ' * 10), sg.Image(data=training_done_gif, key='animation')],
+    ]
 
-    threading.Thread(target=train_on_thread, args=(gui_queue, graph, sess, ), daemon=True).start()
+    training_window = sg.Window('Training...', layout=training_layout, finalize=True)
+    finished_window = sg.Window('Complete!', layout=finished_layout, finalize=True)
 
-    with LoopVars(c=1, updated=False, finished=False, timeout=100) as config:
+    # Hide the windows while we load the GIFs into the cache
+    training_window.Hide()
+    finished_window.Hide()
+
+    training_window['animation'].UpdateAnimation(training_gif)
+    finished_window['animation'].UpdateAnimation(training_done_gif)
+
+    training_window.UnHide()
+    
+
+    threading.Thread(target=train_on_thread, args=(training_queue, graph, sess, ), daemon=True).start()
+
+    with config_vars(timeout=100) as config:
+        # Event loop for training window
         while True:
-            event, values = window.Read(timeout=config.timeout)
-            if config.finished:
-                window['img'].UpdateAnimation('/data/check.gif', time_between_frames=config.timeout)
-                config.c += 1
-                if config.c > 104:
-                    sleep(1)
-                    window.Close()
-                    return message
-                else:
-                    continue
-            if event is None or event == 'Exit':
-                break
+            event, values = training_window.Read(timeout=config.timeout)
+            if event in (None, 'Exit'):
+                exit(1)
             try:
-                message = gui_queue.get_nowait()
-            except queue.Empty:           
-                message = None             
+                result = training_queue.get_nowait()
+            except queue.Empty:
+                result = None
+            
+            training_window['animation'].UpdateAnimation(training_gif)
 
-            window['img'].UpdateAnimation('/data/training.gif', time_between_frames=config.timeout)
-
-            if message:
-                window['txt'].Update('Training Complete!')
-                window['space'].Update(' ' * 5)
-                window['img'].Update('/data/check.gif')
+            if result:
                 config.timeout = 20
-                config.finished = True
+                training_window.Close()
+                finished_window.UnHide()
+                break
+        
+        # Event loop for the training finished window
+        for _ in range(104):
+            event, values = finished_window.Read(timeout=config.timeout)
+            if event in (None, 'Exit'):
+                exit(1)
+            finished_window['animation'].UpdateAnimation(training_done_gif)
+        
+        sleep(2)
+        finished_window.Close()
+        return result
+            
+
+    # with config_vars(c=1, updated=False, finished=False, timeout=100) as config:
+    #     while True:
+    #         event, values = window.Read(timeout=config.timeout)
+    #         if config.finished:
+    #             window['done'].UpdateAnimation(training_done_gif)
+    #             config.c += 1
+    #             if config.c > 104:
+    #                 sleep(1)
+    #                 window.Close()
+    #                 return message
+    #             else:
+    #                 continue
+    #         if event is None or event == 'Exit':
+    #             break
+    #         try:
+    #             message = training_queue.get_nowait()
+    #         except queue.Empty:           
+    #             message = None             
+
+    #         window['in_progress'].UpdateAnimation(training_gif)
+
+    #         if message:
+    #             window['txt'].Update('Training Complete!')
+    #             window['space'].Update(' ' * 5)
+    #             window['in_progress'].Update(visible=False)
+    #             window['done'].Update(visible=True)
+    #             window.Refresh()
+    #             config.timeout = 20
+    #             config.finished = True
 
 if __name__ == '__main__':
 
