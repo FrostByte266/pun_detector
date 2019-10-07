@@ -105,11 +105,11 @@ def train_gui(graph, sess):
 
     training_layout = [
         [sg.Text('Training in progress, this could take a while')],
-        [sg.T(' ' * 10), sg.Image(data=training_gif, key='animation')],
+        [sg.T(' ' * 12), sg.Image(data=training_gif, key='animation')],
     ]
 
     finished_layout = [
-        [sg.Text('Training complete!')],
+        [sg.T(' ' * 15), sg.Text('Training complete!', font=('Ubuntu', 24))],
         [sg.T(' ' * 10), sg.Image(data=training_done_gif, key='animation')],
     ]
 
@@ -158,36 +158,6 @@ def train_gui(graph, sess):
         finished_window.Close()
         return result
             
-
-    # with config_vars(c=1, updated=False, finished=False, timeout=100) as config:
-    #     while True:
-    #         event, values = window.Read(timeout=config.timeout)
-    #         if config.finished:
-    #             window['done'].UpdateAnimation(training_done_gif)
-    #             config.c += 1
-    #             if config.c > 104:
-    #                 sleep(1)
-    #                 window.Close()
-    #                 return message
-    #             else:
-    #                 continue
-    #         if event is None or event == 'Exit':
-    #             break
-    #         try:
-    #             message = training_queue.get_nowait()
-    #         except queue.Empty:           
-    #             message = None             
-
-    #         window['in_progress'].UpdateAnimation(training_gif)
-
-    #         if message:
-    #             window['txt'].Update('Training Complete!')
-    #             window['space'].Update(' ' * 5)
-    #             window['in_progress'].Update(visible=False)
-    #             window['done'].Update(visible=True)
-    #             window.Refresh()
-    #             config.timeout = 20
-    #             config.finished = True
 
 if __name__ == '__main__':
 
